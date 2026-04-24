@@ -1,0 +1,23 @@
+﻿# Credentials & secrets
+.env
+.esaj-session.json
+.eproc-session.json
+.projuris-token.json
+.projuris-session.json
+.processed-tasks.json
+
+# Generated output
+output/
+downloads/
+
+# Dependencies
+node_modules/
+
+# Archives
+*.zip
+
+# Local reference docs
+doc/
+
+# Claude internal
+.claude/

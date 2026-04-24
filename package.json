@@ -1,0 +1,20 @@
+{
+  "name": "fcadv-automacao-demo",
+  "version": "1.0.0",
+  "description": "Demo - Sistema de Automação FCAdv com Claude AI",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.39.0",
+    "docx": "^9.5.0",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "googleapis": "^144.0.0",
+    "mammoth": "^1.8.0",
+    "pdf-parse": "^2.4.5",
+    "playwright": "^1.50.0"
+  }
+}

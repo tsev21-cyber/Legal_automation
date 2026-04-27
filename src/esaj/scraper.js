@@ -1,6 +1,7 @@
 ﻿const { chromium } = require('playwright');
 const path = require('path');
 const fs = require('fs');
+const { chromiumLaunchOptions } = require('../utils/chrome');
 
 const SESSION_FILE = path.join(__dirname, '../../.esaj-session.json');
 const KEEPALIVE_INTERVAL_MS = 35 * 60 * 1000; // 35 min (below 40-min ESAJ timeout)
@@ -19,7 +20,7 @@ class EsajScraper {
   }
 
   async init() {
-    this.browser = await chromium.launch({ headless: true, executablePath: 'C:/Users/Administrator/AppData/Local/Google/Chrome/Bin/chrome.exe' });
+    this.browser = await chromium.launch(chromiumLaunchOptions());
 
     // Restore saved session if available
     const storageState = fs.existsSync(SESSION_FILE) ? SESSION_FILE : undefined;

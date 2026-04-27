@@ -3,6 +3,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const FormData = require('form-data');
+const { chromiumLaunchOptions } = require('../utils/chrome');
 
 const BASE_URL = process.env.PROJURIS_URL || 'https://app.projurisadv.com.br';
 const API_BASE = 'https://service.projurisadv.com.br/adv-service/v2';
@@ -48,7 +49,7 @@ class ProjurisClient {
 
   async _extractTokenViaBrowser() {
     const { chromium } = require('playwright');
-    const browser = await chromium.launch({ headless: true, executablePath: 'C:/Users/Administrator/AppData/Local/Google/Chrome/Bin/chrome.exe' });
+    const browser = await chromium.launch(chromiumLaunchOptions());
     const context = await browser.newContext();
     const page = await context.newPage();
 
@@ -225,7 +226,7 @@ class ProjurisClient {
 
     // Upload via logged-in Chromium session — requires Keycloak cookies + Bearer token
     const { chromium } = require('playwright');
-    const browser = await chromium.launch({ headless: true, executablePath: 'C:/Users/Administrator/AppData/Local/Google/Chrome/Bin/chrome.exe' });
+    const browser = await chromium.launch(chromiumLaunchOptions());
     const ctx = await browser.newContext();
     const page = await ctx.newPage();
 

@@ -1,4 +1,4 @@
-const https = require('https');
+﻿const https = require('https');
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -48,7 +48,7 @@ class ProjurisClient {
 
   async _extractTokenViaBrowser() {
     const { chromium } = require('playwright');
-    const browser = await chromium.launch({ headless: true, channel: 'chrome' });
+    const browser = await chromium.launch({ headless: true, executablePath: 'C:/Users/Administrator/AppData/Local/Google/Chrome/Bin/chrome.exe' });
     const context = await browser.newContext();
     const page = await context.newPage();
 
@@ -225,7 +225,7 @@ class ProjurisClient {
 
     // Upload via logged-in Chromium session — requires Keycloak cookies + Bearer token
     const { chromium } = require('playwright');
-    const browser = await chromium.launch({ headless: true, channel: 'chrome' });
+    const browser = await chromium.launch({ headless: true, executablePath: 'C:/Users/Administrator/AppData/Local/Google/Chrome/Bin/chrome.exe' });
     const ctx = await browser.newContext();
     const page = await ctx.newPage();
 

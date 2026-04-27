@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FCAdv – Projetos</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #222538;
+    --border: #2e3148; --accent: #4f6ef7; --accent2: #7c3aed;
+    --green: #10b981; --orange: #f59e0b; --red: #ef4444;
+    --text: #e2e8f0; --text2: #94a3b8; --text3: #64748b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+  .hidden { display: none !important; }
+
+  header { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 56px; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-icon { width: 32px; height: 32px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; color: white; }
+  .logo-text { font-weight: 700; font-size: 16px; }
+  .logo-sub { font-size: 11px; color: var(--text3); }
+  .back-link { color: var(--text2); text-decoration: none; font-size: 13px; display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); transition: all 0.15s; }
+  .back-link:hover { background: var(--surface2); color: var(--text); }
+
+  .main { display: flex; flex: 1; overflow: hidden; }
+
+  /* Sidebar */
+  .sidebar { width: 280px; flex-shrink: 0; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+  .sidebar-header { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .sidebar-title { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.08em; }
+  .btn-new { background: var(--accent); color: white; border: none; border-radius: 6px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; }
+  .btn-new:hover { opacity: 0.85; }
+  .project-list { flex: 1; overflow-y: auto; padding: 8px; }
+  .project-list::-webkit-scrollbar { width: 4px; }
+  .project-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .project-item { padding: 10px 12px; border-radius: 8px; cursor: pointer; border: 1px solid transparent; margin-bottom: 4px; transition: all 0.15s; }
+  .project-item:hover { background: var(--surface2); border-color: var(--border); }
+  .project-item.active { background: var(--surface2); border-color: var(--accent); }
+  .project-name { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+  .project-kw { font-size: 11px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* Panel */
+  .panel { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+  .panel-empty { display: flex; align-items: center; justify-content: center; flex: 1; flex-direction: column; gap: 10px; color: var(--text3); }
+  .panel-body { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 18px; }
+  .panel-body::-webkit-scrollbar { width: 6px; }
+  .panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  .form-row { display: flex; gap: 14px; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .form-label { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; }
+  .form-input { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 9px 12px; font-size: 13px; font-family: inherit; outline: none; transition: border-color 0.15s; }
+  .form-input:focus { border-color: var(--accent); }
+  .form-hint { font-size: 11px; color: var(--text3); }
+
+  .prompt-header { display: flex; align-items: center; justify-content: space-between; }
+  .char-count { font-size: 11px; color: var(--text3); }
+  .prompt-textarea { width: 100%; resize: vertical; min-height: 280px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); padding: 12px; font-size: 12px; font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.6; outline: none; transition: border-color 0.15s; }
+  .prompt-textarea:focus { border-color: var(--accent); }
+
+  /* Files section */
+  .files-section { border-top: 1px solid var(--border); padding-top: 18px; }
+  .files-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .files-title { font-size: 11px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: 0.07em; }
+  .btn-add-file { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); border-radius: 6px; padding: 5px 12px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .btn-add-file:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-add-file:disabled { opacity: 0.4; cursor: default; }
+  .files-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .files-empty { font-size: 12px; color: var(--text3); padding: 12px 0; }
+
+  .file-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; min-width: 160px; max-width: 220px; display: flex; flex-direction: column; gap: 8px; }
+  .file-card-name { font-size: 12px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .file-card-meta { font-size: 11px; color: var(--text3); }
+  .file-card-actions { display: flex; gap: 6px; }
+  .btn-file { font-size: 11px; padding: 3px 8px; border-radius: 5px; cursor: pointer; border: none; font-weight: 600; transition: opacity 0.15s; }
+  .btn-preview { background: rgba(79,110,247,0.15); color: var(--accent); }
+  .btn-preview:hover { opacity: 0.75; }
+  .btn-remove { background: rgba(239,68,68,0.12); color: var(--red); }
+  .btn-remove:hover { opacity: 0.75; }
+
+  /* Panel actions */
+  .panel-actions { display: flex; align-items: center; justify-content: space-between; padding: 14px 24px; border-top: 1px solid var(--border); background: var(--surface); flex-shrink: 0; }
+  .btn { padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
+  .btn-save { background: var(--accent); color: white; }
+  .btn-save:hover { opacity: 0.85; }
+  .btn-save:disabled { opacity: 0.4; cursor: default; }
+  .btn-delete { background: transparent; color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+  .btn-delete:hover { background: rgba(239,68,68,0.1); }
+  .save-status { font-size: 12px; color: var(--green); opacity: 0; transition: opacity 0.3s; }
+  .save-status.show { opacity: 1; }
+
+  /* Modals */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); display: flex; align-items: center; justify-content: center; z-index: 100; }
+  .modal-overlay.hidden { display: none !important; }
+
+  /* New project modal */
+  .modal-sm { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 24px; width: 400px; display: flex; flex-direction: column; gap: 16px; }
+  .modal-title { font-size: 15px; font-weight: 700; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+  .btn-cancel { background: var(--surface2); color: var(--text2); border: 1px solid var(--border); }
+  .btn-cancel:hover { background: var(--border); }
+  .btn-create { background: var(--accent); color: white; }
+  .btn-create:hover { opacity: 0.85; }
+
+  /* Preview modal */
+  .modal-lg { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; width: min(900px, 90vw); height: 80vh; display: flex; flex-direction: column; overflow: hidden; }
+  .modal-lg-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+  .modal-lg-title { font-size: 14px; font-weight: 700; }
+  .btn-close { background: var(--surface2); border: 1px solid var(--border); color: var(--text2); border-radius: 6px; padding: 4px 12px; cursor: pointer; font-size: 13px; }
+  .btn-close:hover { color: var(--text); }
+  .modal-lg-body { flex: 1; overflow-y: auto; padding: 20px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; line-height: 1.7; color: var(--text2); white-space: pre-wrap; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">FC</div>
+    <div>
+      <div class="logo-text">FCAdv – Projetos</div>
+      <div class="logo-sub">Instruções e arquivos por tipo de petição</div>
+    </div>
+  </div>
+  <a href="/" class="back-link">← Fila de Tarefas</a>
+</header>
+
+<div class="main">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title">Projetos (<span id="project-count">0</span>)</span>
+      <button class="btn-new" onclick="openNewModal()">+ Novo</button>
+    </div>
+    <div class="project-list" id="project-list"></div>
+  </div>
+
+  <div class="panel" id="panel">
+    <!-- Empty state -->
+    <div class="panel-empty" id="panel-empty">
+      <div style="font-size:36px;opacity:0.2">📋</div>
+      <div style="font-size:13px">Selecione um projeto para editar</div>
+    </div>
+
+    <!-- Edit form -->
+    <div class="panel-body hidden" id="panel-body">
+      <div class="form-row">
+        <div class="form-group" style="flex:1.5">
+          <label class="form-label">Nome do Projeto</label>
+          <input type="text" class="form-input" id="field-name">
+        </div>
+        <div class="form-group" style="flex:0.6">
+          <label class="form-label">ID</label>
+          <input type="text" class="form-input" id="field-id" readonly style="opacity:0.5;cursor:default">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Palavras-chave (vírgula para separar)</label>
+        <input type="text" class="form-input" id="field-keywords" placeholder="agravo de instrumento, agravo">
+        <span class="form-hint">Usadas para selecionar automaticamente este projeto com base no tipo de tarefa do Projuris.</span>
+      </div>
+
+      <div class="form-group">
+        <div class="prompt-header">
+          <label class="form-label">Instruções do Sistema (System Prompt)</label>
+          <span class="char-count" id="char-count">0 caracteres</span>
+        </div>
+        <textarea class="prompt-textarea" id="field-prompt"
+          placeholder="Digite as instruções para Claude neste tipo de petição..."
+          oninput="updateCharCount()"></textarea>
+      </div>
+
+      <!-- Files section -->
+      <div class="files-section">
+        <div class="files-header">
+          <span class="files-title">Arquivos de Referência (<span id="files-count">0</span>)</span>
+          <button class="btn-add-file" id="btn-add-file" onclick="document.getElementById('file-input').click()">
+            + Adicionar arquivos
+          </button>
+          <input type="file" id="file-input" accept=".txt,.docx,.pdf" multiple style="display:none" onchange="handleFileUpload(this)">
+        </div>
+        <div class="files-grid" id="files-grid">
+          <div class="files-empty" id="files-empty">Nenhum arquivo. Adicione .txt, .docx ou .pdf como referência de estilo para Claude.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-actions hidden" id="panel-actions">
+      <button class="btn btn-delete" onclick="deleteProject()">Excluir Projeto</button>
+      <div style="display:flex;align-items:center;gap:14px">
+        <span class="save-status" id="save-status">Salvo!</span>
+        <button class="btn btn-save" id="btn-save" onclick="saveProject()">Salvar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- New project modal -->
+<div class="modal-overlay hidden" id="modal-new">
+  <div class="modal-sm">
+    <div class="modal-title">Novo Projeto</div>
+    <div class="form-group">
+      <label class="form-label">Nome</label>
+      <input type="text" class="form-input" id="new-name" placeholder="Ex: Embargos de Declaração">
+    </div>
+    <div class="form-group">
+      <label class="form-label">ID (sem espaços)</label>
+      <input type="text" class="form-input" id="new-id" placeholder="Ex: embargos_declaracao">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeNewModal()">Cancelar</button>
+      <button class="btn btn-create" onclick="createProject()">Criar</button>
+    </div>
+  </div>
+</div>
+
+<!-- File preview modal -->
+<div class="modal-overlay hidden" id="modal-preview">
+  <div class="modal-lg">
+    <div class="modal-lg-header">
+      <span class="modal-lg-title" id="preview-title">Prévia do arquivo</span>
+      <button class="btn-close" onclick="closePreview()">Fechar</button>
+    </div>
+    <div class="modal-lg-body" id="preview-body"></div>
+  </div>
+</div>
+
+<script>
+let projects = [];
+let activeId = null;
+
+// ── Load & render ──────────────────────────────────────────────────────────
+
+async function loadProjects() {
+  const res = await fetch('/api/projects');
+  projects = await res.json();
+  document.getElementById('project-count').textContent = projects.length;
+  renderList();
+}
+
+function renderList() {
+  const list = document.getElementById('project-list');
+  list.innerHTML = '';
+  projects.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'project-item' + (p.id === activeId ? ' active' : '');
+    div.onclick = () => selectProject(p.id);
+    div.innerHTML = `
+      <div class="project-name">${p.name}</div>
+      <div class="project-kw">${(p.keywords||[]).join(', ') || '— padrão'}</div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function selectProject(id) {
+  activeId = id;
+  const p = projects.find(x => x.id === id);
+  if (!p) return;
+
+  document.getElementById('panel-empty').classList.add('hidden');
+  document.getElementById('panel-body').classList.remove('hidden');
+  document.getElementById('panel-actions').classList.remove('hidden');
+
+  document.getElementById('field-id').value = p.id;
+  document.getElementById('field-name').value = p.name;
+  document.getElementById('field-keywords').value = (p.keywords||[]).join(', ');
+  document.getElementById('field-prompt').value = p.prompt || '';
+  updateCharCount();
+  renderFiles(p.files || []);
+  renderList();
+}
+
+// ── Prompt ─────────────────────────────────────────────────────────────────
+
+function updateCharCount() {
+  const len = document.getElementById('field-prompt').value.length;
+  document.getElementById('char-count').textContent = `${len.toLocaleString('pt-BR')} caracteres`;
+}
+
+// ── Save / Delete ──────────────────────────────────────────────────────────
+
+async function saveProject() {
+  if (!activeId) return;
+  const btn = document.getElementById('btn-save');
+  btn.disabled = true; btn.textContent = 'Salvando...';
+  const keywords = document.getElementById('field-keywords').value.split(',').map(k=>k.trim()).filter(Boolean);
+  try {
+    const res = await fetch(`/api/projects/${activeId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: document.getElementById('field-name').value.trim(), keywords, prompt: document.getElementById('field-prompt').value }),
+    });
+    if (!res.ok) throw new Error((await res.json()).error);
+    const updated = await res.json();
+    const idx = projects.findIndex(p => p.id === activeId);
+    if (idx !== -1) projects[idx] = updated;
+    renderList();
+    const s = document.getElementById('save-status');
+    s.classList.add('show'); setTimeout(() => s.classList.remove('show'), 2500);
+  } catch (err) { alert('Erro ao salvar: ' + err.message); }
+  btn.disabled = false; btn.textContent = 'Salvar';
+}
+
+async function deleteProject() {
+  if (!activeId) return;
+  const p = projects.find(x => x.id === activeId);
+  if (!confirm(`Excluir "${p?.name}"?`)) return;
+  const res = await fetch(`/api/projects/${activeId}`, { method: 'DELETE' });
+  if (!res.ok) { alert('Erro ao excluir'); return; }
+  projects = projects.filter(x => x.id !== activeId);
+  activeId = null;
+  document.getElementById('project-count').textContent = projects.length;
+  document.getElementById('panel-body').classList.add('hidden');
+  document.getElementById('panel-actions').classList.add('hidden');
+  document.getElementById('panel-empty').classList.remove('hidden');
+  renderList();
+}
+
+// ── Files ──────────────────────────────────────────────────────────────────
+
+function renderFiles(files) {
+  const grid = document.getElementById('files-grid');
+  const empty = document.getElementById('files-empty');
+  document.getElementById('files-count').textContent = files.length;
+  grid.innerHTML = '';
+  if (!files.length) {
+    grid.appendChild(empty);
+    empty.classList.remove('hidden');
+    return;
+  }
+  files.forEach(f => {
+    const card = document.createElement('div');
+    card.className = 'file-card';
+    card.innerHTML = `
+      <div class="file-card-name" title="${f.name}">📄 ${f.name}</div>
+      <div class="file-card-meta">${(f.chars||0).toLocaleString('pt-BR')} chars</div>
+      <div class="file-card-actions">
+        <button class="btn-file btn-preview" onclick="previewFile('${f.id}','${f.name.replace(/'/g,"\\'")}')">👁 Ver</button>
+        <button class="btn-file btn-remove" onclick="removeFile('${f.id}')">🗑 Remover</button>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+async function handleFileUpload(input) {
+  const files = Array.from(input.files);
+  if (!files.length || !activeId) return;
+  const btn = document.getElementById('btn-add-file');
+  btn.disabled = true;
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    btn.textContent = `Enviando ${i+1}/${files.length}...`;
+    try {
+      const res = await fetch(`/api/projects/${activeId}/files?filename=${encodeURIComponent(file.name)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/octet-stream' },
+        body: file,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      const p = projects.find(x => x.id === activeId);
+      if (p) { if (!p.files) p.files = []; p.files.push(data); }
+      renderFiles(projects.find(x => x.id === activeId)?.files || []);
+    } catch (err) {
+      alert(`Erro em "${file.name}": ${err.message}`);
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = '+ Adicionar arquivos';
+  input.value = '';
+}
+
+async function removeFile(fileId) {
+  if (!confirm('Remover este arquivo?')) return;
+  const res = await fetch(`/api/projects/${activeId}/files/${fileId}`, { method: 'DELETE' });
+  if (!res.ok) { alert('Erro ao remover'); return; }
+  const p = projects.find(x => x.id === activeId);
+  if (p) p.files = (p.files||[]).filter(f => f.id !== fileId);
+  renderFiles(p?.files || []);
+}
+
+async function previewFile(fileId, filename) {
+  document.getElementById('preview-title').textContent = filename;
+  document.getElementById('preview-body').textContent = 'Carregando...';
+  document.getElementById('modal-preview').classList.remove('hidden');
+  const res = await fetch(`/api/projects/${activeId}/files/${fileId}/text`);
+  const data = await res.json();
+  document.getElementById('preview-body').textContent = res.ok ? data.text : ('Erro: ' + data.error);
+}
+
+function closePreview() { document.getElementById('modal-preview').classList.add('hidden'); }
+
+// ── New project modal ──────────────────────────────────────────────────────
+
+function openNewModal() {
+  document.getElementById('new-name').value = '';
+  document.getElementById('new-id').value = '';
+  document.getElementById('modal-new').classList.remove('hidden');
+  document.getElementById('new-name').focus();
+  document.getElementById('new-name').oninput = () => {
+    document.getElementById('new-id').value = document.getElementById('new-name').value
+      .toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,'');
+  };
+}
+
+function closeNewModal() { document.getElementById('modal-new').classList.add('hidden'); }
+
+async function createProject() {
+  const name = document.getElementById('new-name').value.trim();
+  const id = document.getElementById('new-id').value.trim();
+  if (!name || !id) { alert('Nome e ID são obrigatórios'); return; }
+  const res = await fetch('/api/projects', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id, name, keywords: [], prompt: '' }),
+  });
+  if (!res.ok) { alert((await res.json()).error); return; }
+  const project = await res.json();
+  projects.push(project);
+  document.getElementById('project-count').textContent = projects.length;
+  closeNewModal();
+  selectProject(id);
+}
+
+// Close modals on overlay click
+document.getElementById('modal-new').addEventListener('click', e => { if (e.target === e.currentTarget) closeNewModal(); });
+document.getElementById('modal-preview').addEventListener('click', e => { if (e.target === e.currentTarget) closePreview(); });
+
+// Ctrl+S to save
+document.addEventListener('keydown', e => { if ((e.ctrlKey||e.metaKey) && e.key==='s') { e.preventDefault(); if (activeId) saveProject(); } });
+
+loadProjects();
+</script>
+</body>
+</html>

@@ -5,9 +5,10 @@ const fs = require('fs');
 
 const Orchestrator = require('./src/orchestrator');
 const orchestrator = new Orchestrator();
+const projectStore = require('./src/projects/store');
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '25mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Server-side task cache — populated on first /api/tasks call
@@ -97,6 +98,96 @@ app.get('/api/debug/projuris', async (_req, res) => {
 });
 
 app.use('/output', express.static(path.join(__dirname, 'output')));
+
+// ── Text extraction (for projects file attach) ────────────────────────────────
+
+// Shared text extraction helper
+async function extractText(buffer, filename) {
+  const ext = (filename || '').split('.').pop().toLowerCase();
+  if (ext === 'txt') return buffer.toString('utf8').trim();
+  if (ext === 'docx') {
+    const mammoth = require('mammoth');
+    const result = await mammoth.extractRawText({ buffer });
+    return result.value.trim();
+  }
+  if (ext === 'pdf') {
+    const pdfParse = require('pdf-parse');
+    const data = await pdfParse(buffer);
+    return data.text.trim();
+  }
+  throw new Error(`Formato .${ext} não suportado. Use .txt, .docx ou .pdf`);
+}
+
+const rawUpload = express.raw({ type: 'application/octet-stream', limit: '50mb' });
+
+// ── Project file upload/delete/preview ────────────────────────────────────────
+
+app.post('/api/projects/:id/files', rawUpload, async (req, res) => {
+  const filename = req.query.filename || '';
+  const buffer = Buffer.isBuffer(req.body) ? req.body : Buffer.from(req.body || '');
+  try {
+    const text = await extractText(buffer, filename);
+    const meta = projectStore.addFile(req.params.id, { name: filename, text });
+    res.status(201).json(meta);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.delete('/api/projects/:id/files/:fileId', (req, res) => {
+  try {
+    projectStore.removeFile(req.params.id, req.params.fileId);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(404).json({ error: err.message });
+  }
+});
+
+app.get('/api/projects/:id/files/:fileId/text', (req, res) => {
+  try {
+    const text = projectStore.getFileText(req.params.id, req.params.fileId);
+    res.json({ text });
+  } catch (err) {
+    res.status(404).json({ error: err.message });
+  }
+});
+
+// ── Projects CRUD ─────────────────────────────────────────────────────────────
+
+app.get('/api/projects', (_req, res) => {
+  res.json(projectStore.getAll());
+});
+
+app.get('/api/projects/:id', (req, res) => {
+  const p = projectStore.getById(req.params.id);
+  if (!p) return res.status(404).json({ error: 'Projeto não encontrado' });
+  res.json(p);
+});
+
+app.post('/api/projects', (req, res) => {
+  try {
+    res.status(201).json(projectStore.create(req.body));
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+app.put('/api/projects/:id', (req, res) => {
+  try {
+    res.json(projectStore.update(req.params.id, req.body));
+  } catch (err) {
+    res.status(404).json({ error: err.message });
+  }
+});
+
+app.delete('/api/projects/:id', (req, res) => {
+  try {
+    projectStore.remove(req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(404).json({ error: err.message });
+  }
+});
 
 // --- Start Server ------------------------------------------------------------
 

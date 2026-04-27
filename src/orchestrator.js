@@ -4,6 +4,7 @@ const DriveClient = require('./drive/client');
 const ClaudeAgent = require('./claude/agent');
 const { generateDocx } = require('./document/generator');
 const { getReviewer } = require('../config/reviewers');
+const { getStyleExamplesForTask } = require('./projects/store');
 const path = require('path');
 const fs = require('fs');
 
@@ -71,8 +72,17 @@ class Orchestrator {
     // Parse reviewer from description
     const reviewer = getReviewer(task.descricao || task.fullText || '');
 
-    // Fetch Drive style examples
+    // Load project reference files (uploaded via Projects page)
     let styleExamples = [];
+    try {
+      const projectFiles = getStyleExamplesForTask(task.tipo || task.tipoTarefa || '');
+      if (projectFiles.length) {
+        styleExamples = projectFiles;
+        log(`📎 ${projectFiles.length} arquivo(s) de referência do projeto`);
+      }
+    } catch (e) { log(`⚠️  Project files: ${e.message}`); }
+
+    // Fetch Drive style examples (appended after project files)
     if (this._driveEnabled) {
       log(`📂 Fetching style examples from Google Drive...`);
       try {

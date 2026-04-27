@@ -1,5 +1,5 @@
 const Anthropic = require('@anthropic-ai/sdk');
-const { getPrompt } = require('../../config/prompts');
+const { getPrompt } = require('../projects/store');
 
 class ClaudeAgent {
   constructor({ apiKey } = {}) {

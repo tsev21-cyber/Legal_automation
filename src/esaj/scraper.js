@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+﻿const { chromium } = require('playwright');
 const path = require('path');
 const fs = require('fs');
 
@@ -19,7 +19,7 @@ class EsajScraper {
   }
 
   async init() {
-    this.browser = await chromium.launch({ headless: true, channel: 'chrome' });
+    this.browser = await chromium.launch({ headless: true, executablePath: 'C:/Users/Administrator/AppData/Local/Google/Chrome/Bin/chrome.exe' });
 
     // Restore saved session if available
     const storageState = fs.existsSync(SESSION_FILE) ? SESSION_FILE : undefined;

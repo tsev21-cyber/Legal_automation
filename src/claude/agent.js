@@ -150,8 +150,9 @@ Elabore a petição completa no padrão FCAdv.`;
     let fullText = '';
 
     const stream = this.client.messages.stream({
-      model: 'claude-opus-4-6',
-      max_tokens: 8000,
+      model: 'claude-opus-4-7',
+      max_tokens: 16000,
+      thinking: { type: 'adaptive' },
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
     });
@@ -173,13 +174,15 @@ Elabore a petição completa no padrão FCAdv.`;
     const systemPrompt = getPrompt(task.tipoTarefa || task.tipo || '');
 
     const response = await this.client.messages.create({
-      model: 'claude-opus-4-6',
-      max_tokens: 8000,
+      model: 'claude-opus-4-7',
+      max_tokens: 16000,
+      thinking: { type: 'adaptive' },
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
     });
 
-    return response.content[0].text;
+    const textBlock = response.content.find(b => b.type === 'text');
+    return textBlock ? textBlock.text : '';
   }
 }
 

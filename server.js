@@ -189,6 +189,46 @@ app.delete('/api/projects/:id', (req, res) => {
   }
 });
 
+// --- Autopilot ---------------------------------------------------------------
+// Enable with AUTO_PROCESS=true in .env — polls Projuris and auto-generates
+// petitions for new tasks without any manual click.
+
+const AUTOPILOT_ENABLED = process.env.AUTO_PROCESS === 'true';
+const AUTOPILOT_INTERVAL_MS = parseInt(process.env.POLL_INTERVAL_MS || '600000', 10); // 10 min default
+const autoAttempted = new Set(); // in-memory; cleared on restart (allows retry after fix)
+
+async function runAutopilot() {
+  try {
+    const tasks = await orchestrator.getTaskQueue();
+    taskCache = new Map(tasks.map(t => [t.id, t])); // keep cache fresh
+    const pending = tasks.filter(t =>
+      orchestrator._isGeneratable(t) &&
+      !orchestrator._processedTasks.has(String(t.id)) &&
+      !orchestrator._processing.has(String(t.id)) &&
+      !autoAttempted.has(String(t.id))
+    );
+    if (pending.length === 0) return;
+    console.log(`🤖 [Autopilot] ${pending.length} nova(s) tarefa(s) encontrada(s)`);
+    for (const task of pending) {
+      autoAttempted.add(String(task.id));
+      console.log(`🤖 [Autopilot] Processando tarefa ${task.id}: ${task.tipo}`);
+      try {
+        const result = await orchestrator.processTask(task.id, { task });
+        console.log(`✅ [Autopilot] Concluído: ${result.docxFilename}`);
+      } catch (err) {
+        console.error(`❌ [Autopilot] Falhou na tarefa ${task.id}: ${err.message}`);
+      }
+    }
+  } catch (err) {
+    console.error('⚠️  [Autopilot] Erro no poll:', err.message);
+  }
+}
+
+// Status endpoint so the UI can show autopilot state
+app.get('/api/autopilot/status', (_req, res) => {
+  res.json({ enabled: AUTOPILOT_ENABLED, intervalMs: AUTOPILOT_INTERVAL_MS, attempted: autoAttempted.size });
+});
+
 // --- Start Server ------------------------------------------------------------
 
 const PORT = process.env.PORT || 3000;
@@ -200,5 +240,11 @@ app.listen(PORT, async () => {
     console.log(`📋 ${tasks.length} tarefas carregadas do Projuris`);
   } catch (err) {
     console.warn('⚠️  Projuris pre-load failed:', err.message);
+  }
+
+  if (AUTOPILOT_ENABLED) {
+    console.log(`🤖 Autopilot ATIVO — verificando a cada ${AUTOPILOT_INTERVAL_MS / 60000} min`);
+    runAutopilot(); // run immediately on startup
+    setInterval(runAutopilot, AUTOPILOT_INTERVAL_MS);
   }
 });
